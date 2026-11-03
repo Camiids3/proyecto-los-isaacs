@@ -1,0 +1,5 @@
+# Catálogo de canciones que ya vienen en el proyecto (carpeta src/main/webapp/media).
+# Formato: codigo;titulo;categoria;ritmo;duracionSeg;descripcion;archivo;autor
+T001;Recall;Electrónica;7;125.3;Un tema con mucha energía para arrancar la lista;gabriawll.mp3;Gabriawll
+T002;whatdoyousee;Electrónica;5;118.6;Un tema más relajado para el medio de la lista;whatdoyousee.mp3;prodBigMike! y GlitchCat
+T003;Magnetic;Electrónica;8;123.5;Un tema potente para cerrar la lista;springs.mp3;springs!
