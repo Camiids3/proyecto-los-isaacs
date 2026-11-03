@@ -1,10 +1,13 @@
 package co.umariana.isaacs.persistencia;
 
-import co.umariana.isaacs.modelo.Tema;
-
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+
+import co.umariana.isaacs.modelo.Tema;
 
 /**
  * Guarda los temas en un archivo de texto (tarea de PERSISTENCIA).
@@ -32,13 +35,67 @@ public class RepositorioTxt implements Repositorio {
 
     @Override
     public List<Tema> cargar() throws IOException {
-        // TODO (PERSISTENCIA)
-        throw new UnsupportedOperationException("TODO: cargar()");
+        List<Tema> temas = new ArrayList<>();
+
+        // Si el archivo no existe, devolver lista vacía
+        if (!Files.exists(archivo)) {
+            return temas;
+        }
+
+        List<String> lineas = Files.readAllLines(archivo, StandardCharsets.UTF_8);
+        for (String linea : lineas) {
+            // Ignorar líneas en blanco
+            if (linea.isBlank()) {
+                continue;
+            }
+
+            // -1 conserva los campos vacíos del final (ej. descripción vacía)
+            String[] campos = linea.split(";", -1);
+
+            // Ignorar líneas dañadas: cantidad de campos distinta de 7
+            if (campos.length != 7) {
+                continue;
+            }
+
+            try {
+                String codigo = campos[0];
+                String titulo = campos[1];
+                String categoria = campos[2];
+                int ritmo = Integer.parseInt(campos[3].trim());
+                double duracionSeg = Double.parseDouble(campos[4].trim());
+                String descripcion = campos[5];
+                String nombreArchivo = campos[6];
+
+                temas.add(new Tema(codigo, titulo, categoria, ritmo,
+                        duracionSeg, descripcion, nombreArchivo));
+            } catch (NumberFormatException e) {
+                // Números inválidos: línea dañada, se ignora
+            }
+        }
+        return temas;
     }
 
     @Override
     public void guardar(List<Tema> temas) throws IOException {
-        // TODO (PERSISTENCIA)
-        throw new UnsupportedOperationException("TODO: guardar()");
+        // Crear las carpetas que falten
+        Path padre = archivo.toAbsolutePath().getParent();
+        if (padre != null) {
+            Files.createDirectories(padre);
+        }
+
+        List<String> lineas = new ArrayList<>();
+        for (Tema t : temas) {
+            lineas.add(String.join(";",
+                    t.getCodigo(),
+                    t.getTitulo(),
+                    t.getCategoria(),
+                    String.valueOf(t.getRitmo()),
+                    String.valueOf(t.getDuracionSeg()), // siempre con punto decimal
+                    t.getDescripcion(),
+                    t.getArchivo()));
+        }
+
+        // Reemplaza todo el contenido; con lista vacía queda el archivo vacío
+        Files.write(archivo, lineas, StandardCharsets.UTF_8);
     }
 }
