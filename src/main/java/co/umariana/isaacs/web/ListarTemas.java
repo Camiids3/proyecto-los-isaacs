@@ -1,11 +1,16 @@
 package co.umariana.isaacs.web;
 
+import java.io.IOException;
+import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import co.umariana.isaacs.modelo.ServicioTemas;
+import co.umariana.isaacs.modelo.Tema;
 
 /**
  * GET /listar  (tarea de SERVLETS)
@@ -24,7 +29,18 @@ public class ListarTemas extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO (SERVLETS)
-        throw new UnsupportedOperationException("TODO: ListarTemas.doGet()");
+        ServicioTemas servicio = Contexto.servicio();
+
+        // Con ?orden=ranking se muestra el ranking; con cualquier otro valor (o sin él), la lista normal.
+        List<Tema> temas;
+        if ("ranking".equals(req.getParameter("orden"))) {
+            temas = servicio.ranking();
+        } else {
+            temas = servicio.listar();
+        }
+
+        req.setAttribute("temas", temas);
+        req.setAttribute("promedios", servicio.promedioPorCategoria());
+        req.getRequestDispatcher("/WEB-INF/vistas/listar.jsp").forward(req, resp);
     }
 }
