@@ -1,11 +1,15 @@
 package co.umariana.isaacs.web;
 
+import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import co.umariana.isaacs.modelo.ServicioTemas;
+import co.umariana.isaacs.modelo.Tema;
 
 /**
  * GET /reproductor  (tarea de SERVLETS)
@@ -25,7 +29,21 @@ public class Reproductor extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO (SERVLETS)
-        throw new UnsupportedOperationException("TODO: Reproductor.doGet()");
+        ServicioTemas servicio = Contexto.servicio();
+        String accion = req.getParameter("accion");
+
+        // Se mueve el cursor según la acción; sin acción (o una desconocida) se queda donde está.
+        Tema tema;
+        if ("siguiente".equals(accion)) {
+            tema = servicio.siguiente();
+        } else if ("anterior".equals(accion)) {
+            tema = servicio.anterior();
+        } else {
+            tema = servicio.actual();
+        }
+
+        req.setAttribute("tema", tema);
+        req.setAttribute("total", servicio.total());
+        req.getRequestDispatcher("/WEB-INF/vistas/reproductor.jsp").forward(req, resp);
     }
 }

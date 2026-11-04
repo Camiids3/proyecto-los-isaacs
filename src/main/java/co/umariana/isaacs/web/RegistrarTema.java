@@ -1,11 +1,14 @@
 package co.umariana.isaacs.web;
 
+import java.io.IOException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import co.umariana.isaacs.modelo.Tema;
 
 /**
  * /registrar  (tarea de SERVLETS)
@@ -25,15 +28,49 @@ import java.io.IOException;
 @WebServlet("/registrar")
 public class RegistrarTema extends HttpServlet {
 
+    private static final String FORMULARIO = "/WEB-INF/vistas/formulario.jsp";
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO (SERVLETS)
-        throw new UnsupportedOperationException("TODO: RegistrarTema.doGet()");
+        req.getRequestDispatcher(FORMULARIO).forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO (SERVLETS)
-        throw new UnsupportedOperationException("TODO: RegistrarTema.doPost()");
+        req.setCharacterEncoding("UTF-8"); // para que las tildes y la ñ lleguen bien desde el formulario
+
+        String codigo = req.getParameter("codigo");
+        String titulo = req.getParameter("titulo");
+        String categoria = req.getParameter("categoria");
+        String textoRitmo = req.getParameter("ritmo");
+        String textoDuracion = req.getParameter("duracion");
+        String descripcion = req.getParameter("descripcion");
+        String archivo = req.getParameter("archivo");
+
+        try {
+            int ritmo = Integer.parseInt(textoRitmo.trim());
+            double duracion = Double.parseDouble(textoDuracion.trim());
+
+            Tema tema = new Tema(codigo, titulo, categoria, ritmo, duracion, descripcion, archivo);
+            Contexto.servicio().agregar(tema); // el modelo valida y rechaza códigos repetidos
+
+            resp.sendRedirect("listar");
+        } catch (NumberFormatException e) {
+            // NumberFormatException es hija de IllegalArgumentException: se atiende primero
+            // para dar un mensaje más claro que el de Java ("For input string: ...").
+            mostrarError(req, resp, "El ritmo debe ser un número entero y la duración un número decimal.");
+        } catch (IllegalArgumentException e) {
+            mostrarError(req, resp, e.getMessage());
+        } catch (NullPointerException e) {
+            // Falta el campo ritmo o duración en la petición.
+            mostrarError(req, resp, "El ritmo y la duración son obligatorios.");
+        }
+    }
+
+    /** Pone el mensaje en el atributo "error" y vuelve a mostrar el formulario (sin redirigir). */
+    private void mostrarError(HttpServletRequest req, HttpServletResponse resp, String mensaje)
+            throws ServletException, IOException {
+        req.setAttribute("error", mensaje);
+        req.getRequestDispatcher(FORMULARIO).forward(req, resp);
     }
 }
