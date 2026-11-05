@@ -278,3 +278,38 @@ kbd { background: var(--tarjeta-2); border: 1px solid var(--borde); border-botto
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+/* Menú de inicio como tarjetas-botón */
+main > ul {
+    list-style: none;
+    margin: 1.5rem 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+main > ul li a {
+    display: block;
+    height: 100%;
+    padding: 1.25rem 1.25rem;
+    background: var(--tarjeta);
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    color: var(--texto);
+    font-size: 1.15rem;
+    font-weight: 600;
+    line-height: 1.6;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+main > ul li a small {
+    display: block;
+    margin-top: .25rem;
+    color: var(--suave);
+    font-size: .85rem;
+    font-weight: 400;
+}
+main > ul li a:hover {
+    text-decoration: none;
+    transform: translateY(-4px);
+    border-color: var(--acento);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+}
