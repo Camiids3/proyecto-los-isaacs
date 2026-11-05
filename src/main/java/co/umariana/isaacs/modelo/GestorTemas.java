@@ -3,89 +3,140 @@ package co.umariana.isaacs.modelo;
 import co.umariana.isaacs.estructura.Lista;
 import co.umariana.isaacs.persistencia.Repositorio;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
-/**
- * Reglas de negocio del Isaacsfy (tarea de MODELO).
- *
- * <p>Guarda los temas en una {@link Lista} (la estructura de datos del equipo) y, después de
- * cada cambio, los guarda con el {@link Repositorio}. No debe usar {@code ArrayList} ni otra
- * colección de Java para guardar los datos: eso lo hace la {@code Lista}.
- */
 public class GestorTemas implements ServicioTemas {
 
     private final Lista<Tema> lista;
     private final Repositorio repositorio;
 
-    /**
-     * Al crearse, carga con el repositorio los temas ya guardados y los agrega a la lista.
-     * Si el repositorio lanza {@link java.io.IOException}, se relanza como {@link java.io.UncheckedIOException}.
-     */
     public GestorTemas(Lista<Tema> lista, Repositorio repositorio) {
         this.lista = lista;
         this.repositorio = repositorio;
-        // TODO (MODELO): cargar los temas del repositorio y agregarlos a la lista.
+        try {
+            List<Tema> guardados = repositorio.cargar();
+            for (Tema t : guardados) {
+                this.lista.agregar(t);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Error al cargar los temas del archivo", e);
+        }
+    }
+
+    private void guardarCambios() {
+        try {
+            repositorio.guardar(listar());
+        } catch (IOException e) {
+            throw new UncheckedIOException("Error al guardar los temas en el archivo", e);
+        }
     }
 
     @Override
     public void agregar(Tema tema) {
-        // TODO (MODELO): validar (tema.validar()), rechazar código repetido
-        //  (IllegalArgumentException), agregar al final de la lista y guardar con el repositorio.
-        throw new UnsupportedOperationException("TODO: agregar()");
+        tema.validar();
+        if (buscar(tema.getCodigo()) != null) {
+            throw new IllegalArgumentException("Ya existe un tema con el código: " + tema.getCodigo());
+        }
+        lista.agregar(tema);
+        guardarCambios();
     }
 
     @Override
     public Tema buscar(String codigo) {
-        // TODO (MODELO)
-        throw new UnsupportedOperationException("TODO: buscar()");
+        for (Tema t : lista) {
+            if (t.getCodigo().equals(codigo)) {
+                return t;
+            }
+        }
+        return null;
     }
 
     @Override
     public boolean eliminar(String codigo) {
-        // TODO (MODELO): si existe, eliminarlo de la lista, guardar y devolver true.
-        throw new UnsupportedOperationException("TODO: eliminar()");
+        for (int i = 0; i < lista.tamano(); i++) {
+            if (lista.obtener(i).getCodigo().equals(codigo)) {
+                lista.eliminar(i);
+                guardarCambios();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public List<Tema> listar() {
-        // TODO (MODELO): devolver los temas en el orden de la lista.
-        throw new UnsupportedOperationException("TODO: listar()");
+        List<Tema> todos = new ArrayList<>();
+        for (Tema t : lista) {
+            todos.add(t);
+        }
+        return todos;
     }
+
+    // ==========================================
+    // MÉTODOS DE ESTADÍSTICAS Y REPRODUCTOR
+    // ==========================================
 
     @Override
     public List<Tema> ranking() {
-        // TODO (MODELO)
-        throw new UnsupportedOperationException("TODO: ranking()");
+        // Pedimos la lista normal y la ordenamos
+        List<Tema> ordenados = listar();
+        ordenados.sort((t1, t2) -> {
+            // Compara ritmo de mayor a menor (t2 vs t1)
+            int compRitmo = Integer.compare(t2.getRitmo(), t1.getRitmo());
+            if (compRitmo == 0) {
+                // Si empatan, ordena alfabéticamente por código (t1 vs t2)
+                return t1.getCodigo().compareTo(t2.getCodigo());
+            }
+            return compRitmo;
+        });
+        return ordenados;
     }
 
     @Override
     public Map<String, Double> promedioPorCategoria() {
-        // TODO (MODELO)
-        throw new UnsupportedOperationException("TODO: promedioPorCategoria()");
+        // Mapas auxiliares para sumar ritmos y contar cuántos hay por categoría
+        Map<String, Double> suma = new HashMap<>();
+        Map<String, Integer> conteo = new HashMap<>();
+
+        for (Tema t : lista) {
+            suma.put(t.getCategoria(), suma.getOrDefault(t.getCategoria(), 0.0) + t.getRitmo());
+            conteo.put(t.getCategoria(), conteo.getOrDefault(t.getCategoria(), 0) + 1);
+        }
+
+        // TreeMap organiza automáticamente las llaves (categorías) en orden alfabético
+        Map<String, Double> promedios = new TreeMap<>();
+        for (String cat : suma.keySet()) {
+            promedios.put(cat, suma.get(cat) / conteo.get(cat));
+        }
+        
+        return promedios;
     }
 
     @Override
     public int total() {
-        // TODO (MODELO)
-        throw new UnsupportedOperationException("TODO: total()");
+        return lista.tamano();
     }
 
     @Override
     public Tema actual() {
-        // TODO (MODELO): usar el cursor de la lista.
-        throw new UnsupportedOperationException("TODO: actual()");
+        return lista.actual();
     }
 
     @Override
     public Tema siguiente() {
-        // TODO (MODELO)
-        throw new UnsupportedOperationException("TODO: siguiente()");
+        lista.avanzar();
+        return lista.actual();
     }
 
     @Override
     public Tema anterior() {
-        // TODO (MODELO)
-        throw new UnsupportedOperationException("TODO: anterior()");
+        lista.retroceder();
+        return lista.actual();
     }
 }
