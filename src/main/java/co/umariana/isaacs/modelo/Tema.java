@@ -1,11 +1,5 @@
 package co.umariana.isaacs.modelo;
 
-/**
- * Un tema del Isaacsfy: un audio con su título, categoría y nivel de ritmo.
- *
- * <p>La clase ya tiene sus atributos, constructor y getters. Lo que falta es {@link #validar()}
- * (tarea de MODELO).
- */
 public class Tema {
 
     private final String codigo;
@@ -17,7 +11,7 @@ public class Tema {
     private final String archivo;
 
     public Tema(String codigo, String titulo, String categoria, int ritmo,
-                   double duracionSeg, String descripcion, String archivo) {
+                double duracionSeg, String descripcion, String archivo) {
         this.codigo = codigo;
         this.titulo = titulo;
         this.categoria = categoria;
@@ -27,21 +21,34 @@ public class Tema {
         this.archivo = archivo;
     }
 
-    /**
-     * Revisa que el tema sea válido. Si no lo es, lanza {@link IllegalArgumentException}
-     * con un mensaje que explique el problema. Reglas:
-     * <ul>
-     *   <li>{@code codigo}, {@code titulo}, {@code categoria} y {@code archivo} no pueden ser nulos ni estar en blanco.</li>
-     *   <li>{@code ritmo} debe estar entre 1 y 10 (incluidos).</li>
-     *   <li>{@code duracionSeg} debe ser mayor que 0.</li>
-     *   <li>{@code descripcion} puede estar vacía, pero no ser nula.</li>
-     *   <li>Ningún texto puede contener el carácter {@code ;} (separa los campos del archivo .txt)
-     *       ni saltos de línea.</li>
-     * </ul>
-     */
     public void validar() {
-        // TODO (MODELO): implementar las reglas descritas arriba.
-        throw new UnsupportedOperationException("TODO: validar()");
+        if (codigo == null || codigo.trim().isEmpty()) {
+            throw new IllegalArgumentException("El código no puede ser nulo ni estar en blanco.");
+        }
+        if (titulo == null || titulo.trim().isEmpty()) {
+            throw new IllegalArgumentException("El título no puede ser nulo ni estar en blanco.");
+        }
+        if (categoria == null || categoria.trim().isEmpty()) {
+            throw new IllegalArgumentException("La categoría no puede ser nula ni estar en blanco.");
+        }
+        if (archivo == null || archivo.trim().isEmpty()) {
+            throw new IllegalArgumentException("El archivo no puede ser nulo ni estar en blanco.");
+        }
+        if (ritmo < 1 || ritmo > 10) {
+            throw new IllegalArgumentException("El ritmo debe estar entre 1 y 10.");
+        }
+        if (duracionSeg <= 0) {
+            throw new IllegalArgumentException("La duración debe ser mayor que 0.");
+        }
+        if (descripcion == null) {
+            throw new IllegalArgumentException("La descripción no puede ser nula.");
+        }
+        String[] textos = {codigo, titulo, categoria, descripcion, archivo};
+        for (String texto : textos) {
+            if (texto.contains(";") || texto.contains("\n") || texto.contains("\r")) {
+                throw new IllegalArgumentException("Los textos no pueden contener ';' ni saltos de línea.");
+            }
+        }
     }
 
     public String getCodigo() { return codigo; }
